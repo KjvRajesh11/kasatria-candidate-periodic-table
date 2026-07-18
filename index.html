@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Kasatria &middot; Candidate Periodic Table</title>
+<style>
+  :root {
+    --bg: #0a0b0e;
+    --panel: rgba(14,16,20,0.86);
+    --gold: #d4a24c;
+    --gold-soft: rgba(212,162,76,0.35);
+    --ink: #f4f2ec;
+    --ink-dim: rgba(244,242,236,0.6);
+    --red: #EF3022;
+    --orange: #FDDA35;
+    --green: #3A9F48;
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    overflow: hidden;
+  }
+
+  button:focus-visible, #continueBtn:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+  }
+
+  /* ---------- Sign-in gate ---------- */
+
+  #gate {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+      radial-gradient(ellipse at 50% 20%, rgba(212,162,76,0.10), transparent 55%),
+      var(--bg);
+    padding: 24px;
+  }
+
+  .gate-card {
+    width: 100%;
+    max-width: 380px;
+    text-align: center;
+    border: 1px solid rgba(212,162,76,0.25);
+    border-radius: 18px;
+    padding: 40px 30px 32px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+
+  .gate-logo {
+    font-family: var(--mono);
+    letter-spacing: 0.32em;
+    font-size: 12px;
+    color: var(--gold);
+    margin-bottom: 18px;
+    text-transform: uppercase;
+  }
+
+  .gate-card h1 {
+    font-size: 22px;
+    margin: 0 0 10px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .gate-sub {
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--ink-dim);
+    margin: 0 0 26px;
+  }
+
+  #googleBtn {
+    display: flex;
+    justify-content: center;
+    min-height: 40px;
+    margin-bottom: 14px;
+  }
+
+  #continueBtn {
+    display: none;
+    width: 100%;
+    padding: 11px 18px;
+    background: var(--gold);
+    color: #1a1206;
+    border: 0;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 13.5px;
+    cursor: pointer;
+    letter-spacing: 0.01em;
+  }
+
+  #continueBtn:hover { filter: brightness(1.08); }
+
+  .gate-note {
+    margin: 16px 0 0;
+    font-size: 11.5px;
+    line-height: 1.5;
+    color: rgba(244,242,236,0.42);
+  }
+
+  /* ---------- App shell ---------- */
+
+  #app { position: fixed; inset: 0; }
+
+  #container {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+  }
+
+  #hud {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 18px 22px;
+    pointer-events: none;
+  }
+
+  .hud-title {
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.01em;
+  }
+
+  .hud-title .accent { color: var(--gold); }
+
+  .hud-sub {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--ink-dim);
+    margin-top: 3px;
+  }
+
+  #legend {
+    display: flex;
+    gap: 12px;
+    background: var(--panel);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 999px;
+    padding: 7px 14px;
+    font-size: 10.5px;
+    font-family: var(--mono);
+    color: var(--ink-dim);
+    pointer-events: auto;
+  }
+
+  #legend span { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+
+  #legend i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  #menu {
+    position: fixed;
+    bottom: 22px;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    pointer-events: none;
+  }
+
+  #menu button {
+    pointer-events: auto;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--ink-dim);
+    background: var(--panel);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 999px;
+    padding: 9px 18px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  #menu button:hover { border-color: var(--gold-soft); color: var(--ink); }
+
+  #menu button.active {
+    background: var(--gold);
+    color: #1a1206;
+    border-color: var(--gold);
+  }
+
+  #hint {
+    position: fixed;
+    bottom: 68px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 10.5px;
+    color: rgba(244,242,236,0.32);
+    pointer-events: none;
+    z-index: 20;
+  }
+
+  /* ---------- Candidate tiles ---------- */
+
+  .element {
+    width: 150px;
+    height: 210px;
+    border-radius: 14px;
+    overflow: hidden;
+    position: relative;
+    cursor: default;
+    border: 1px solid rgba(255,255,255,0.16);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+    transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  }
+
+  .element:hover {
+    border-color: rgba(255,255,255,0.55);
+    box-shadow: 0 14px 40px rgba(0,0,0,0.6);
+  }
+
+  .element .rank {
+    position: absolute;
+    top: 7px;
+    right: 9px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: rgba(255,255,255,0.85);
+    text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+    z-index: 2;
+  }
+
+  .element .photo-wrap {
+    width: 100%;
+    height: 98px;
+    overflow: hidden;
+    background: #05060a;
+    position: relative;
+  }
+
+  .element .photo-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .element .initials {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.85);
+    background: rgba(0,0,0,0.35);
+  }
+
+  .element .info {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: 98px;
+    background: rgba(6,7,10,0.74);
+    padding: 9px 10px 10px;
+  }
+
+  .element .name {
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.28;
+    color: #fff;
+    max-height: 2.6em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .element .meta {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: rgba(255,255,255,0.55);
+    margin-top: 4px;
+  }
+
+  .element .interest {
+    display: inline-block;
+    margin-top: 7px;
+    font-size: 9px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.82);
+  }
+
+  .element .worth {
+    position: absolute;
+    bottom: 9px;
+    left: 10px;
+    right: 10px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    font-weight: 700;
+  }
+
+  @media (max-width: 640px) {
+    #hud { flex-direction: column; gap: 10px; padding: 14px; }
+    #legend { font-size: 9.5px; padding: 6px 10px; gap: 8px; }
+    #menu button { padding: 8px 12px; font-size: 10px; }
+    .gate-card { padding: 30px 22px 26px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .element { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+  <div id="gate">
+    <div class="gate-card">
+      <div class="gate-logo">KASATRIA</div>
+      <h1>Candidate Periodic Table</h1>
+      <p class="gate-sub">200 candidates, arranged as an interactive 3D &ldquo;periodic table&rdquo; and colour-coded by net worth.</p>
+      <div id="googleBtn"></div>
+      <button id="continueBtn" style="display:none;">Continue to preview</button>
+      <p id="gateNote" class="gate-note">Checking Google Sign&#8209;In&hellip;</p>
+    </div>
+  </div>
+
+  <div id="app" style="display:none">
+    <div id="container"></div>
+    <div id="hud">
+        <div>
+          <div class="hud-title">Candidate <span class="accent">Periodic Table</span></div>
+          <div class="hud-sub" id="dataSource">200 candidates &middot; embedded sample data</div>
+        </div>
+      
+        <div style="display:flex; align-items:center; gap:14px;">
+          <div id="legend">
+            <span><i style="background:#EF3022"></i>&lt;$100K</span>
+            <span><i style="background:#FDDA35"></i>$100K–$200K</span>
+            <span><i style="background:#3A9F48"></i>&gt;$200K</span>
+          </div>
+      
+          <div id="userProfile" style="display:none; align-items:center; gap:10px; background:rgba(14,16,20,0.86); border:1px solid rgba(255,255,255,0.08); border-radius:999px; padding:6px 12px 6px 6px; pointer-events:auto;">
+            <img id="userPhoto" src="" style="width:28px; height:28px; border-radius:50%; object-fit:cover;">
+            <span id="userName" style="font-size:12px; font-weight:600;"></span>
+            <button id="logoutBtn" style="background:transparent; border:none; color:rgba(244,242,236,0.6); font-size:11px; cursor:pointer; margin-left:4px;">Logout</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="hint">Drag to rotate · Scroll to zoom</div>
+    
+    <div id="menu">
+      <button id="table">TABLE</button>
+      <button id="sphere">SPHERE</button>
+      <button id="helix">HELIX</button>
+      <button id="grid">GRID</button>
+    </div>
+
+  </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script>
+/* =====================================================================
+   THREE.CSS3DRenderer / THREE.CSS3DObject
+   Verbatim, unmodified, from the official three.js r128 examples
+   (examples/js/renderers/CSS3DRenderer.js). Kept as its own block so it
+   is easy to see exactly what is third-party vs. assignment-specific
+   code below.
+   ===================================================================== */
+( function () {
+
+	/**
+ * Based on http://www.emagix.net/academic/mscs-project/item/camera-sync-with-css3-and-webgl-threejs
+ */
+
+	class CSS3DObject extends THREE.Object3D {
+
+		constructor( element ) {
+
+			super();
+			this.element = element || document.createElement( 'div' );
+			this.element.style.position = 'absolute';
+			this.element.style.pointerEvents = 'auto';
+			this.addEventListener( 'removed', function () {
+
+				this.traverse( function ( object ) {
+
+					if ( object.element instanceof Element && object.element.parentNode !== null ) {
+
+						object.element.parentNode.removeChild( object.element );
+
+					}
+
+				} );
+
+			} );
+
+		}
+
+		copy( source, recursive ) {
+
+			super.copy( source, recursive );
+			this.element = source.element.cloneNode( true );
+			return this;
+
+		}
+
+	}
+
+	CSS3DObject.prototype.isCSS3DObject = true;
+
+	class CSS3DSprite extends CSS3DObject {
+
+		constructor( element ) {
+
+			super( element );
+
+		}
+
+	}
+
+	CSS3DSprite.prototype.isCSS3DSprite = true; //
+
+	const _matrix = new THREE.Matrix4();
+
+	class CSS3DRenderer {
+
+		constructor() {
+
+			const _this = this;
+
+			let _width, _height;
+
+			let _widthHalf, _heightHalf;
+
+			const cache = {
+				camera: {
+					fov: 0,
+					style: ''
+				},
+				objects: new WeakMap()
+			};
+			const domElement = document.createElement( 'div' );
+			domElement.style.overflow = 'hidden';
+			this.domElement = domElement;
+			const cameraElement = document.createElement( 'div' );
+			cameraElement.style.transformStyle = 'preserve-3d';
+			cameraElement.style.pointerEvents = 'none';
+			domElement.appendChild( cameraElement );
+
+			this.getSize = function () {
+
+				return {
+					width: _width,
+					height: _height
+				};
+
+			};
+
+			this.render = function ( scene, camera ) {
+
+				const fov = camera.projectionMatrix.elements[ 5 ] * _heightHalf;
+
+				if ( cache.camera.fov !== fov ) {
+
+					domElement.style.perspective = camera.isPerspectiveCamera ? fov + 'px' : '';
+					cache.camera.fov = fov;
+
+				}
+
+				if ( scene.autoUpdate === true ) scene.updateMatrixWorld();
+				if ( camera.parent === null ) camera.updateMatrixWorld();
+				let tx, ty;
+
+				if ( camera.isOrthographicCamera ) {
+
+					tx = - ( camera.right + camera.left ) / 2;
+					ty = ( camera.top + camera.bottom ) / 2;
+
+				}
+
+				const cameraCSSMatrix = camera.isOrthographicCamera ? 'scale(' + fov + ')' + 'translate(' + epsilon( tx ) + 'px,' + epsilon( ty ) + 'px)' + getCameraCSSMatrix( camera.matrixWorldInverse ) : 'translateZ(' + fov + 'px)' + getCameraCSSMatrix( camera.matrixWorldInverse );
+				const style = cameraCSSMatrix + 'translate(' + _widthHalf + 'px,' + _heightHalf + 'px)';
+
+				if ( cache.camera.style !== style ) {
+
+					cameraElement.style.transform = style;
+					cache.camera.style = style;
+
+				}
+
+				renderObject( scene, scene, camera, cameraCSSMatrix );
+
+			};
+
+			this.setSize = function ( width, height ) {
+
+				_width = width;
+				_height = height;
+				_widthHalf = _width / 2;
+				_heightHalf = _height / 2;
+				domElement.style.width = width + 'px';
+				domElement.style.height = height + 'px';
+				cameraElement.style.width = width + 'px';
+				cameraElement.style.height = height + 'px';
+
+			};
+
+			function epsilon( value ) {
+
+				return Math.abs( value ) < 1e-10 ? 0 : value;
+
+			}
+
+			function getCameraCSSMatrix( matrix ) {
+
+				const elements = matrix.elements;
+				return 'matrix3d(' + epsilon( elements[ 0 ] ) + ',' + epsilon( - elements[ 1 ] ) + ',' + epsilon( elements[ 2 ] ) + ',' + epsilon( elements[ 3 ] ) + ',' + epsilon( elements[ 4 ] ) + ',' + epsilon( - elements[ 5 ] ) + ',' + epsilon( elements[ 6 ] ) + ',' + epsilon( elements[ 7 ] ) + ',' + epsilon( elements[ 8 ] ) + ',' + epsilon( - elements[ 9 ] ) + ',' + epsilon( elements[ 10 ] ) + ',' + epsilon( elements[ 11 ] ) + ',' + epsilon( elements[ 12 ] ) + ',' + epsilon( - elements[ 13 ] ) + ',' + epsilon( elements[ 14 ] ) + ',' + epsilon( elements[ 15 ] ) + ')';
+
+			}
+
+			function getObjectCSSMatrix( matrix ) {
+
+				const elements = matrix.elements;
+				const matrix3d = 'matrix3d(' + epsilon( elements[ 0 ] ) + ',' + epsilon( elements[ 1 ] ) + ',' + epsilon( elements[ 2 ] ) + ',' + epsilon( elements[ 3 ] ) + ',' + epsilon( - elements[ 4 ] ) + ',' + epsilon( - elements[ 5 ] ) + ',' + epsilon( - elements[ 6 ] ) + ',' + epsilon( - elements[ 7 ] ) + ',' + epsilon( elements[ 8 ] ) + ',' + epsilon( elements[ 9 ] ) + ',' + epsilon( elements[ 10 ] ) + ',' + epsilon( elements[ 11 ] ) + ',' + epsilon( elements[ 12 ] ) + ',' + epsilon( elements[ 13 ] ) + ',' + epsilon( elements[ 14 ] ) + ',' + epsilon( elements[ 15 ] ) + ')';
+				return 'translate(-50%,-50%)' + matrix3d;
+
+			}
+
+			function renderObject( object, scene, camera, cameraCSSMatrix ) {
+
+				if ( object.isCSS3DObject ) {
+
+					object.onBeforeRender( _this, scene, camera );
+					let style;
+
+					if ( object.isCSS3DSprite ) {
+
+						// http://swiftcoder.wordpress.com/2008/11/25/constructing-a-billboard-matrix/
+						_matrix.copy( camera.matrixWorldInverse );
+
+						_matrix.transpose();
+
+						_matrix.copyPosition( object.matrixWorld );
+
+						_matrix.scale( object.scale );
+
+						_matrix.elements[ 3 ] = 0;
+						_matrix.elements[ 7 ] = 0;
+						_matrix.elements[ 11 ] = 0;
+						_matrix.elements[ 15 ] = 1;
+						style = getObjectCSSMatrix( _matrix );
+
+					} else {
+
+						style = getObjectCSSMatrix( object.matrixWorld );
+
+					}
+
+					const element = object.element;
+					const cachedObject = cache.objects.get( object );
+
+					if ( cachedObject === undefined || cachedObject.style !== style ) {
+
+						element.style.transform = style;
+						const objectData = {
+							style: style
+						};
+						cache.objects.set( object, objectData );
+
+					}
+
+					element.style.display = object.visible ? '' : 'none';
+
+					if ( element.parentNode !== cameraElement ) {
+
+						cameraElement.appendChild( element );
+
+					}
+
+					object.onAfterRender( _this, scene, camera );
+
+				}
+
+				for ( let i = 0, l = object.children.length; i < l; i ++ ) {
+
+					renderObject( object.children[ i ], scene, camera, cameraCSSMatrix );
+
+				}
+
+			}
+
+		}
+
+	}
+
+	THREE.CSS3DObject = CSS3DObject;
+	THREE.CSS3DRenderer = CSS3DRenderer;
+	THREE.CSS3DSprite = CSS3DSprite;
+
+} )();
+
+</script>
+
+<script>
+/* =====================================================================
+   Kasatria preliminary assignment — candidate "periodic table"
+   Built on the three.js css3d_periodictable example, driven by the
+   200-row candidate dataset instead of chemical elements.
+   ===================================================================== */
+
+// ---------------------------------------------------------------------
+// 1. CONFIG — fill these in once you've done the Google Cloud / Sheets
+//    setup described in SETUP.md. Until then the app runs fine against
+//    the embedded dataset below.
+// ---------------------------------------------------------------------
+const CONFIG = {
+  // OAuth 2.0 Client ID from Google Cloud Console > APIs & Services >
+  // Credentials > Create Credentials > OAuth client ID > Web application.
+  GOOGLE_CLIENT_ID: '369114134546-9iha4vpfatl2o0h2pogppeibabe090qi.apps.googleusercontent.com',
+
+  // The Sheet ID from your Google Sheet's URL:
+  // https://docs.google.com/spreadsheets/d/ <-- THIS PART --> /edit
+  // Leave blank to use the embedded dataset below.
+  GOOGLE_SHEET_ID: '1Ey-Io1M9dPsANZ_D8UwRct0AoyZrtfVufI8M-SFvfxg',
+
+  // Tab name inside the Sheet (the CSV import defaults to "Sheet1").
+  GOOGLE_SHEET_NAME: 'Sheet1'
+};
+
+function isClientIdConfigured() {
+  return !!CONFIG.GOOGLE_CLIENT_ID && CONFIG.GOOGLE_CLIENT_ID.indexOf('YOUR_GOOGLE_OAUTH_CLIENT_ID') === -1;
+}
+function isSheetConfigured() {
+  return !!CONFIG.GOOGLE_SHEET_ID;
+}
+
+// ---------------------------------------------------------------------
+// 2. DATA — embedded fallback, generated from Data Template.csv (200
+//    rows). n=name, p=photo url, a=age, c=country, i=interest, w=net worth.
+// ---------------------------------------------------------------------
+const EMBEDDED_CANDIDATES = [{"n":"Lee Siew Suan","p":"https://static.kasatria.com/pivot-img/photo/019.jpg","a":25,"c":"CN","i":"Writing","w":251260.8},{"n":"New Yee Chian","p":"https://static.kasatria.com/pivot-img/photo/020.jpg","a":23,"c":"CN","i":"Cooking","w":60393.6},{"n":"Wong Thiam Fook","p":"https://static.kasatria.com/pivot-img/photo/021.jpg","a":30,"c":"CN","i":"Traveling","w":212140.8},{"n":"Norsuzilawati Mohd Noor","p":"https://static.kasatria.com/pivot-img/photo/022.jpg","a":30,"c":"MY","i":"Painting","w":208228.8},{"n":"Norzainah Omar","p":"https://static.kasatria.com/pivot-img/photo/023.jpg","a":30,"c":"MY","i":"Hiking","w":106555.2},{"n":"Meghandran Nathy","p":"https://static.kasatria.com/pivot-img/photo/024.jpg","a":31,"c":"IN","i":"Cooking","w":139080.0},{"n":"Joyshree Goswami","p":"https://static.kasatria.com/pivot-img/photo/025.jpg","a":35,"c":"IN","i":"Painting","w":192278.4},{"n":"Geetha Maniam","p":"https://static.kasatria.com/pivot-img/photo/026.jpg","a":27,"c":"IN","i":"Cooking","w":90864.0},{"n":"Abdul Rahim Osman","p":"https://static.kasatria.com/pivot-img/photo/027.jpg","a":30,"c":"MY","i":"Cooking","w":141859.2},{"n":"Prem Anand Raj","p":"https://static.kasatria.com/pivot-img/photo/028.jpg","a":44,"c":"IN","i":"Gardening","w":196113.6},{"n":"Piara Singh Sarwan Singh","p":"https://static.kasatria.com/pivot-img/photo/029.jpg","a":34,"c":"IN","i":"Writing","w":207960.0},{"n":"Othman b Abdul Rahman","p":"https://static.kasatria.com/pivot-img/photo/030.jpg","a":53,"c":"MY","i":"Gardening","w":193200.0},{"n":"Sathiaseelan Paul Thurai","p":"https://static.kasatria.com/pivot-img/photo/031.jpg","a":59,"c":"IN","i":"Gardening","w":264456.0},{"n":"Abdul Farid Alias","p":"https://static.kasatria.com/pivot-img/photo/MY0014.jpg","a":36,"c":"MY","i":"Writing","w":146592.0},{"n":"Abu Hassan Assari Ibrahim","p":"https://static.kasatria.com/pivot-img/photo/MY0010.jpg","a":43,"c":"MY","i":"Gardening","w":213657.6},{"n":"Faridah Ahmad Iskandar","p":"https://static.kasatria.com/pivot-img/photo/MY_003.jpg","a":31,"c":"MY","i":"Writing","w":271516.8},{"n":"Muzaffar Hisham","p":"https://static.kasatria.com/pivot-img/photo/MY0009.jpg","a":35,"c":"MY","i":"Cooking","w":230980.8},{"n":"Isaac Cardinal","p":"https://static.kasatria.com/pivot-img/photo/CA0088.jpg","a":49,"c":"US","i":"Gardening","w":259252.8},{"n":"Prabunathan A/L Gopal","p":"https://static.kasatria.com/pivot-img/photo/IND_021.jpg","a":29,"c":"IN","i":"Writing","w":271670.4},{"n":"Taswin Zakaria","p":"https://static.kasatria.com/pivot-img/photo/MY0012.jpg","a":41,"c":"MY","i":"Gardening","w":243840.0},{"n":"Crystal Carter","p":"https://static.kasatria.com/pivot-img/photo/039.jpg","a":35,"c":"US","i":"Cooking","w":211550.4},{"n":"Vivian Grapentine","p":"https://static.kasatria.com/pivot-img/photo/040.jpg","a":36,"c":"CN","i":"Writing","w":149361.6},{"n":"Joey De Leion","p":"https://static.kasatria.com/pivot-img/photo/041.jpg","a":35,"c":"US","i":"Hiking","w":60974.4},{"n":"Mark Feehily","p":"https://static.kasatria.com/pivot-img/photo/042.jpg","a":30,"c":"US","i":"Cooking","w":125496.0},{"n":"Cheong Choong Kong","p":"https://static.kasatria.com/pivot-img/photo/114.jpg","a":25,"c":"CN","i":"Painting","w":111412.8},{"n":"George Lee Lap Wah","p":"https://static.kasatria.com/pivot-img/photo/115.jpg","a":31,"c":"CN","i":"Painting","w":146174.4},{"n":"Yong Mei Theng","p":"https://static.kasatria.com/pivot-img/photo/116.jpg","a":28,"c":"CN","i":"Writing","w":187896.0},{"n":"Tang Zhee Kim","p":"https://static.kasatria.com/pivot-img/photo/117.jpg","a":24,"c":"CN","i":"Painting","w":264355.2},{"n":"Tan Miaw Wei","p":"https://static.kasatria.com/pivot-img/photo/118.jpg","a":25,"c":"CN","i":"Cooking","w":101841.6},{"n":"Cheng Ming Soon","p":"https://static.kasatria.com/pivot-img/photo/119.jpg","a":18,"c":"CN","i":"Traveling","w":210835.2},{"n":"Lee Fong Fong","p":"https://static.kasatria.com/pivot-img/photo/120.jpg","a":25,"c":"CN","i":"Painting","w":193017.6},{"n":"Amir Amran Karim","p":"https://static.kasatria.com/pivot-img/photo/121.jpg","a":29,"c":"MY","i":"Cooking","w":147600.0},{"n":"Krishnan CK Menon","p":"https://static.kasatria.com/pivot-img/photo/122.jpg","a":25,"c":"IN","i":"Cooking","w":207355.2},{"n":"Aishwarya Rai","p":"https://static.kasatria.com/pivot-img/photo/IND_041.jpg","a":32,"c":"IN","i":"Hiking","w":186398.4},{"n":"Simone Kumar Gopalan","p":"https://static.kasatria.com/pivot-img/photo/124.jpg","a":36,"c":"IN","i":"Hiking","w":327057.6},{"n":"Maimoonah Hussain","p":"https://static.kasatria.com/pivot-img/photo/125.jpg","a":27,"c":"MY","i":"Cooking","w":181228.8},{"n":"Chanda Kochar","p":"https://static.kasatria.com/pivot-img/photo/126.jpg","a":30,"c":"IN","i":"Hiking","w":133228.8},{"n":"Shyamala Gopinath","p":"https://static.kasatria.com/pivot-img/photo/127.jpg","a":20,"c":"IN","i":"Traveling","w":267230.4},{"n":"Suren Zedek","p":"https://static.kasatria.com/pivot-img/photo/128.jpg","a":35,"c":"IN","i":"Writing","w":89764.8},{"n":"Danial Kuilan","p":"https://static.kasatria.com/pivot-img/photo/129.jpg","a":35,"c":"IN","i":"Writing","w":246686.4},{"n":"Levi Asher Anamalai","p":"https://static.kasatria.com/pivot-img/photo/130.jpg","a":19,"c":"IN","i":"Traveling","w":170260.8},{"n":"Tristan Martin","p":"https://static.kasatria.com/pivot-img/photo/131.jpg","a":52,"c":"US","i":"Gardening","w":181555.2},{"n":"David Conner","p":"https://static.kasatria.com/pivot-img/photo/CA0294.jpg","a":55,"c":"US","i":"Gardening","w":282019.2},{"n":"Kerry Jen Katona","p":"https://static.kasatria.com/pivot-img/photo/CA0285.jpg","a":43,"c":"US","i":"Gardening","w":250579.2},{"n":"Gilbert Kohnke","p":"https://static.kasatria.com/pivot-img/photo/134.jpg","a":55,"c":"US","i":"Gardening","w":344318.4},{"n":"Spencer Murray","p":"https://static.kasatria.com/pivot-img/photo/135.jpg","a":52,"c":"US","i":"Gardening","w":240638.4},{"n":"Yaacob Mohd Zain","p":"https://static.kasatria.com/pivot-img/photo/136.jpg","a":24,"c":"MY","i":"Hiking","w":205372.8},{"n":"Hatini Mat Husin","p":"https://static.kasatria.com/pivot-img/photo/137.jpg","a":28,"c":"MY","i":"Hiking","w":350774.4},{"n":"Ariffin Alias","p":"https://static.kasatria.com/pivot-img/photo/138.jpg","a":28,"c":"MY","i":"Writing","w":241670.4},{"n":"Abdul Malik A Rahman","p":"https://static.kasatria.com/pivot-img/photo/139.jpg","a":42,"c":"MY","i":"Gardening","w":197779.2},{"n":"Samad Mahid Zain","p":"https://static.kasatria.com/pivot-img/photo/140.jpg","a":30,"c":"MY","i":"Hiking","w":245827.2},{"n":"Johan Hashim","p":"https://static.kasatria.com/pivot-img/photo/141.jpg","a":34,"c":"MY","i":"Cooking","w":184915.2},{"n":"Samsiah Zainal","p":"https://static.kasatria.com/pivot-img/photo/142.jpg","a":28,"c":"MY","i":"Painting","w":259180.8},{"n":"Tay Eng Yaw","p":"https://static.kasatria.com/pivot-img/photo/009.jpg","a":27,"c":"CN","i":"Cooking","w":188457.6},{"n":"Cynthiea Hong Pei Min","p":"https://static.kasatria.com/pivot-img/photo/010.jpg","a":22,"c":"CN","i":"Painting","w":164865.6},{"n":"Lim Yong Siang","p":"https://static.kasatria.com/pivot-img/photo/011.jpg","a":40,"c":"CN","i":"Gardening","w":347481.6},{"n":"Mohd Azam Mohd Bakar","p":"https://static.kasatria.com/pivot-img/photo/018.jpg","a":38,"c":"MY","i":"Cooking","w":166795.2},{"n":"Jagathesan Shanmugam","p":"https://static.kasatria.com/pivot-img/photo/043.jpg","a":43,"c":"IN","i":"Gardening","w":97075.2},{"n":"Christiana Tharsis","p":"https://static.kasatria.com/pivot-img/photo/044.jpg","a":35,"c":"IN","i":"Hiking","w":243014.4},{"n":"Amutha Rakwan","p":"https://static.kasatria.com/pivot-img/photo/045.jpg","a":46,"c":"IN","i":"Gardening","w":100396.8},{"n":"Wan Rosmawati Wan Ibrahim","p":"https://static.kasatria.com/pivot-img/photo/046.jpg","a":34,"c":"MY","i":"Cooking","w":191616.0},{"n":"Khatimah Mahadi","p":"https://static.kasatria.com/pivot-img/photo/047.jpg","a":29,"c":"MY","i":"Painting","w":265171.2},{"n":"Nor Rozita Nordin","p":"https://static.kasatria.com/pivot-img/photo/048.jpg","a":32,"c":"MY","i":"Painting","w":246158.4},{"n":"Abdul Aziz Man","p":"https://static.kasatria.com/pivot-img/photo/049.jpg","a":32,"c":"MY","i":"Cooking","w":312158.4},{"n":"Nimma Safira Khalid","p":"https://static.kasatria.com/pivot-img/photo/050.jpg","a":19,"c":"MY","i":"Traveling","w":258384.0},{"n":"Lam Swee Kim","p":"https://static.kasatria.com/pivot-img/photo/012.jpg","a":23,"c":"CN","i":"Painting","w":148718.4},{"n":"Tai Yee Shian","p":"https://static.kasatria.com/pivot-img/photo/013.jpg","a":34,"c":"CN","i":"Painting","w":195206.4},{"n":"Euodia Ooi","p":"https://static.kasatria.com/pivot-img/photo/014.jpg","a":27,"c":"CN","i":"Writing","w":52118.4},{"n":"Ng Jia Nian","p":"https://static.kasatria.com/pivot-img/photo/015.jpg","a":24,"c":"CN","i":"Cooking","w":340464.0},{"n":"Ong Tze Jun","p":"https://static.kasatria.com/pivot-img/photo/016.jpg","a":36,"c":"CN","i":"Hiking","w":159739.2},{"n":"Brian Choong Chee Keong","p":"https://static.kasatria.com/pivot-img/photo/017.jpg","a":21,"c":"CN","i":"Traveling","w":347659.2},{"n":"Shaharuddin Abg Mansor","p":"https://static.kasatria.com/pivot-img/photo/086.jpg","a":47,"c":"MY","i":"Gardening","w":351993.6},{"n":"Mohd Izani Ashari","p":"https://static.kasatria.com/pivot-img/photo/087.jpg","a":30,"c":"MY","i":"Traveling","w":230179.2},{"n":"Roshan Thiran","p":"https://static.kasatria.com/pivot-img/photo/088.jpg","a":26,"c":"MY","i":"Cooking","w":369652.8},{"n":"Shahazwan Harris","p":"https://static.kasatria.com/pivot-img/photo/089.jpg","a":30,"c":"MY","i":"Painting","w":364948.8},{"n":"Saiful Dzulkifly","p":"https://static.kasatria.com/pivot-img/photo/090.jpg","a":36,"c":"MY","i":"Painting","w":360115.2},{"n":"Jamie Haniff Ramlee","p":"https://static.kasatria.com/pivot-img/photo/091.jpg","a":47,"c":"MY","i":"Gardening","w":174312.0},{"n":"Azim Azli","p":"https://static.kasatria.com/pivot-img/photo/092.jpg","a":50,"c":"MY","i":"Gardening","w":160252.8},{"n":"Zaida Khalida Shaari","p":"https://static.kasatria.com/pivot-img/photo/093.jpg","a":25,"c":"MY","i":"Cooking","w":163104.0},{"n":"Nurul Nabila Huda Che Ad","p":"https://static.kasatria.com/pivot-img/photo/094.jpg","a":39,"c":"MY","i":"Hiking","w":247579.2},{"n":"Sarimah Samad-Imran","p":"https://static.kasatria.com/pivot-img/photo/095.jpg","a":29,"c":"MY","i":"Painting","w":102580.8},{"n":"Wan Nur Nordiyana","p":"https://static.kasatria.com/pivot-img/photo/096.jpg","a":25,"c":"MY","i":"Cooking","w":264705.6},{"n":"Fatimah Husna","p":"https://static.kasatria.com/pivot-img/photo/097.jpg","a":25,"c":"MY","i":"Writing","w":72710.4},{"n":"Nurshafiqah Saad","p":"https://static.kasatria.com/pivot-img/photo/098.jpg","a":30,"c":"MY","i":"Cooking","w":128750.4},{"n":"Amerjit Singh Bhag Singh","p":"https://static.kasatria.com/pivot-img/photo/IND_005.jpg","a":31,"c":"IN","i":"Writing","w":205171.2},{"n":"Nora Abd Manaf","p":"https://static.kasatria.com/pivot-img/photo/100.jpg","a":29,"c":"MY","i":"Writing","w":168096.0},{"n":"Walter Michael Chan","p":"https://static.kasatria.com/pivot-img/photo/101.jpg","a":29,"c":"CN","i":"Cooking","w":197083.2},{"n":"Teng Chean Choy","p":"https://static.kasatria.com/pivot-img/photo/102.jpg","a":32,"c":"CN","i":"Cooking","w":145862.4},{"n":"Chua Bee Chin","p":"https://static.kasatria.com/pivot-img/photo/103.jpg","a":23,"c":"CN","i":"Painting","w":159883.2},{"n":"Santhanamary John","p":"https://static.kasatria.com/pivot-img/photo/155.jpg","a":25,"c":"IN","i":"Writing","w":135878.4},{"n":"Nor Arzlin Redzwan","p":"https://static.kasatria.com/pivot-img/photo/156.jpg","a":42,"c":"MY","i":"Gardening","w":66907.2},{"n":"Zuraidah Atan","p":"https://static.kasatria.com/pivot-img/photo/157.jpg","a":28,"c":"MY","i":"Cooking","w":104649.6},{"n":"Shahrul Izzan Abdul Karim","p":"https://static.kasatria.com/pivot-img/photo/158.jpg","a":29,"c":"MY","i":"Traveling","w":46363.2},{"n":"Putri Shireen Syed Othman","p":"https://static.kasatria.com/pivot-img/photo/m_047.jpg","a":33,"c":"MY","i":"Painting","w":96628.8},{"n":"Abdul Hadzi Marzuki","p":"https://static.kasatria.com/pivot-img/photo/160.jpg","a":34,"c":"MY","i":"Writing","w":117273.6},{"n":"Yasmin Ahmad","p":"https://static.kasatria.com/pivot-img/photo/161.jpg","a":24,"c":"MY","i":"Painting","w":58833.6},{"n":"Halipah Binti Esa","p":"https://static.kasatria.com/pivot-img/photo/162.jpg","a":29,"c":"MY","i":"Traveling","w":102676.8},{"n":"Habibah Abdul","p":"https://static.kasatria.com/pivot-img/photo/163.jpg","a":37,"c":"MY","i":"Painting","w":210993.6},{"n":"Zulkarnain Ahmad","p":"https://static.kasatria.com/pivot-img/photo/164.jpg","a":34,"c":"MY","i":"Writing","w":71361.6},{"n":"Fauziah Mohd Noor","p":"https://static.kasatria.com/pivot-img/photo/165.jpg","a":24,"c":"MY","i":"Painting","w":126532.8},{"n":"Mohd Yunus Idris","p":"https://static.kasatria.com/pivot-img/photo/196.jpg","a":39,"c":"MY","i":"Writing","w":143112.0},{"n":"Ahmad Jauhari Yahya","p":"https://static.kasatria.com/pivot-img/photo/197.jpg","a":21,"c":"MY","i":"Traveling","w":159422.4},{"n":"Saifol Bahri Mohamad Shamlan","p":"https://static.kasatria.com/pivot-img/photo/198.jpg","a":34,"c":"MY","i":"Writing","w":198936.0},{"n":"Isham Ishak","p":"https://static.kasatria.com/pivot-img/photo/199.jpg","a":40,"c":"MY","i":"Gardening","w":112598.4},{"n":"Mohd Hafizuddin Mansor","p":"https://static.kasatria.com/pivot-img/photo/200.jpg","a":34,"c":"MY","i":"Hiking","w":99624.0},{"n":"Stuart Cardell","p":"https://static.kasatria.com/pivot-img/photo/CA0292.jpg","a":44,"c":"US","i":"Gardening","w":44140.8},{"n":"Abigail Wellington","p":"https://static.kasatria.com/pivot-img/photo/CA0237.jpg","a":33,"c":"US","i":"Painting","w":126201.6},{"n":"Gino Chin","p":"https://static.kasatria.com/pivot-img/photo/c_035.jpg","a":33,"c":"CN","i":"Cooking","w":178569.6},{"n":"Meon Khor","p":"https://static.kasatria.com/pivot-img/photo/c_016.jpg","a":37,"c":"CN","i":"Writing","w":132936.0},{"n":"Lim Joo ann","p":"https://static.kasatria.com/pivot-img/photo/c_013.jpg","a":30,"c":"CN","i":"Writing","w":183110.4},{"n":"Yong Hai Wen","p":"https://static.kasatria.com/pivot-img/photo/CN_038.jpg","a":19,"c":"CN","i":"Traveling","w":259123.2},{"n":"Yuki Low Mei Shan","p":"https://static.kasatria.com/pivot-img/photo/CN_024.jpg","a":28,"c":"CN","i":"Hiking","w":191016.0},{"n":"Jessica Tee Yan Lai","p":"https://static.kasatria.com/pivot-img/photo/J_013.jpg","a":36,"c":"CN","i":"Hiking","w":152433.6},{"n":"Sam Yam","p":"https://static.kasatria.com/pivot-img/photo/J_003.jpg","a":29,"c":"CN","i":"Cooking","w":57499.2},{"n":"Shanker Jorrama","p":"https://static.kasatria.com/pivot-img/photo/IND_057.jpg","a":36,"c":"IN","i":"Writing","w":220142.4},{"n":"Vick Viknes","p":"https://static.kasatria.com/pivot-img/photo/IND_010.jpg","a":21,"c":"IN","i":"Painting","w":267307.2},{"n":"Arul Krishnan","p":"https://static.kasatria.com/pivot-img/photo/IND_035.jpg","a":35,"c":"IN","i":"Hiking","w":69883.2},{"n":"Shamini Mohanan","p":"https://static.kasatria.com/pivot-img/photo/IND_014.jpg","a":28,"c":"IN","i":"Writing","w":363681.6},{"n":"Theodore Frazer","p":"https://static.kasatria.com/pivot-img/photo/o_009.jpg","a":49,"c":"US","i":"Gardening","w":361166.4},{"n":"Aju Varghese","p":"https://static.kasatria.com/pivot-img/photo/IND_028.jpg","a":43,"c":"IN","i":"Gardening","w":324686.4},{"n":"Shahrukh Khan","p":"https://static.kasatria.com/pivot-img/photo/IND_032.jpg","a":40,"c":"IN","i":"Gardening","w":287155.2},{"n":"Prithviraj Sukumaran","p":"https://static.kasatria.com/pivot-img/photo/IND_040.jpg","a":50,"c":"IN","i":"Gardening","w":363739.2},{"n":"Sarah Miller","p":"https://static.kasatria.com/pivot-img/photo/CA0134.jpg","a":32,"c":"US","i":"Painting","w":101832.0},{"n":"Monali Thakur","p":"https://static.kasatria.com/pivot-img/photo/IND_016.jpg","a":29,"c":"IN","i":"Painting","w":162710.4},{"n":"Keerubalami Ponnudi","p":"https://static.kasatria.com/pivot-img/photo/IND_044.jpg","a":36,"c":"IN","i":"Writing","w":177052.8},{"n":"Saint Sahana","p":"https://static.kasatria.com/pivot-img/photo/i_023.jpg","a":37,"c":"IN","i":"Hiking","w":314136.0},{"n":"Munish Thabur","p":"https://static.kasatria.com/pivot-img/photo/m_020.jpg","a":28,"c":"MY","i":"Hiking","w":171758.4},{"n":"Yogesh Balakrishnamur","p":"https://static.kasatria.com/pivot-img/photo/IND_011.jpg","a":21,"c":"IN","i":"Painting","w":238915.2},{"n":"Sharmilla Mogan","p":"https://static.kasatria.com/pivot-img/photo/IND_049.jpg","a":19,"c":"IN","i":"Traveling","w":173740.8},{"n":"Janesree Gunasegern","p":"https://static.kasatria.com/pivot-img/photo/IND_045.jpg","a":32,"c":"IN","i":"Painting","w":187512.0},{"n":"Preya Nadarasa","p":"https://static.kasatria.com/pivot-img/photo/i_018.jpg","a":26,"c":"IN","i":"Cooking","w":247233.6},{"n":"Uma Shamini","p":"https://static.kasatria.com/pivot-img/photo/i_028.jpg","a":24,"c":"IN","i":"Cooking","w":201451.2},{"n":"Geetha Kumar","p":"https://static.kasatria.com/pivot-img/photo/IND_053.jpg","a":18,"c":"IN","i":"Traveling","w":164433.6},{"n":"Jeeva Rajadran","p":"https://static.kasatria.com/pivot-img/photo/IND_031.jpg","a":38,"c":"IN","i":"Cooking","w":192969.6},{"n":"Nadaraajan Perumal","p":"https://static.kasatria.com/pivot-img/photo/IND_008.jpg","a":25,"c":"IN","i":"Writing","w":165604.8},{"n":"Shri Gobaradhan","p":"https://static.kasatria.com/pivot-img/photo/IND_039.jpg","a":39,"c":"IN","i":"Writing","w":218740.8},{"n":"Satees Muniady","p":"https://static.kasatria.com/pivot-img/photo/IND_034.jpg","a":44,"c":"IN","i":"Gardening","w":191673.6},{"n":"Nur Syazwani Nabilah Ibrahim","p":"https://static.kasatria.com/pivot-img/photo/m_190.jpg","a":33,"c":"MY","i":"Painting","w":210110.4},{"n":"Geetha Davethas","p":"https://static.kasatria.com/pivot-img/photo/IND_042.jpg","a":24,"c":"IN","i":"Hiking","w":199689.6},{"n":"Pricella Ance","p":"https://static.kasatria.com/pivot-img/photo/G_027.jpg","a":34,"c":"US","i":"Cooking","w":141801.6},{"n":"Kumarran Thanrayan","p":"https://static.kasatria.com/pivot-img/photo/i_013.jpg","a":28,"c":"IN","i":"Cooking","w":128222.4},{"n":"Tineswary Pannaparon","p":"https://static.kasatria.com/pivot-img/photo/i_002.jpg","a":21,"c":"IN","i":"Painting","w":94281.6},{"n":"Vinothyni Anannthi","p":"https://static.kasatria.com/pivot-img/photo/IND_015.jpg","a":22,"c":"IN","i":"Painting","w":357902.4},{"n":"Pilva Bhatia","p":"https://static.kasatria.com/pivot-img/photo/IND_013.jpg","a":29,"c":"IN","i":"Painting","w":213988.8},{"n":"Wan Nahijah Mohamad","p":"https://static.kasatria.com/pivot-img/photo/m_027.jpg","a":24,"c":"MY","i":"Painting","w":183710.4},{"n":"Rahimi Muhamad","p":"https://static.kasatria.com/pivot-img/photo/m_066.jpg","a":30,"c":"MY","i":"Writing","w":191452.8},{"n":"Shuhada Shahira","p":"https://static.kasatria.com/pivot-img/photo/m_090.jpg","a":19,"c":"MY","i":"Traveling","w":258057.6},{"n":"Yana Husin","p":"https://static.kasatria.com/pivot-img/photo/mus_202.jpg","a":49,"c":"MY","i":"Gardening","w":129523.2},{"n":"Yusri Shafie","p":"https://static.kasatria.com/pivot-img/photo/mus_163.jpg","a":28,"c":"MY","i":"Hiking","w":166843.2},{"n":"Nurul Shafiza Mat Isa","p":"https://static.kasatria.com/pivot-img/photo/mus_166.jpg","a":32,"c":"MY","i":"Painting","w":257068.8},{"n":"Aidan Ohara","p":"https://static.kasatria.com/pivot-img/photo/mus_194.jpg","a":27,"c":"MY","i":"Hiking","w":260635.2},{"n":"Ella Berry","p":"https://static.kasatria.com/pivot-img/photo/CA0128.jpg","a":35,"c":"US","i":"Cooking","w":131736.0},{"n":"Noor Atheerah Zulkipli","p":"https://static.kasatria.com/pivot-img/photo/mus_178.jpg","a":31,"c":"MY","i":"Cooking","w":154046.4},{"n":"Ikmal Zakaria","p":"https://static.kasatria.com/pivot-img/photo/m_185.jpg","a":32,"c":"MY","i":"Painting","w":197380.8},{"n":"Syed Azuwan Syed Helmi","p":"https://static.kasatria.com/pivot-img/photo/p_047.jpg","a":34,"c":"MY","i":"Writing","w":163905.6},{"n":"Haziq Zamri","p":"https://static.kasatria.com/pivot-img/photo/m_187.jpg","a":27,"c":"MY","i":"Painting","w":99048.0},{"n":"Nor Fazila","p":"https://static.kasatria.com/pivot-img/photo/mus_056.jpg","a":29,"c":"MY","i":"Cooking","w":189384.0},{"n":"Muhd Ruzhan","p":"https://static.kasatria.com/pivot-img/photo/m_116.jpg","a":28,"c":"MY","i":"Traveling","w":232641.6},{"n":"Azhar Masli","p":"https://static.kasatria.com/pivot-img/photo/m_154.jpg","a":29,"c":"MY","i":"Writing","w":212256.0},{"n":"Mohd Riduan Hamin","p":"https://static.kasatria.com/pivot-img/photo/m_120.jpg","a":40,"c":"MY","i":"Gardening","w":235483.2},{"n":"Freya Rogers","p":"https://static.kasatria.com/pivot-img/photo/CA0274.jpg","a":30,"c":"US","i":"Painting","w":240427.2},{"n":"Harris Azman","p":"https://static.kasatria.com/pivot-img/photo/m_181.jpg","a":38,"c":"MY","i":"Writing","w":232377.6},{"n":"Muhammad Adli Azri","p":"https://static.kasatria.com/pivot-img/photo/th_337.jpg","a":24,"c":"MY","i":"Painting","w":280248.0},{"n":"Jafri Mohd","p":"https://static.kasatria.com/pivot-img/photo/m_177.jpg","a":29,"c":"MY","i":"Hiking","w":314107.2},{"n":"Aten Zulkifly","p":"https://static.kasatria.com/pivot-img/photo/mus_019.jpg","a":30,"c":"MY","i":"Writing","w":237307.2},{"n":"Eyqa Hassan","p":"https://static.kasatria.com/pivot-img/photo/mus_045.jpg","a":25,"c":"MY","i":"Painting","w":112651.2},{"n":"Muhd Yazid","p":"https://static.kasatria.com/pivot-img/photo/m_018.jpg","a":30,"c":"MY","i":"Hiking","w":76492.8},{"n":"Muhammad Syafiq Suhaimi","p":"https://static.kasatria.com/pivot-img/photo/p_027.jpg","a":39,"c":"MY","i":"Writing","w":341563.2},{"n":"Nashrul Amin","p":"https://static.kasatria.com/pivot-img/photo/p_014.jpg","a":62,"c":"MY","i":"Gardening","w":154632.0},{"n":"Nur Syahirah","p":"https://static.kasatria.com/pivot-img/photo/mus_064.jpg","a":21,"c":"MY","i":"Painting","w":148492.8},{"n":"Syamimy Ghani","p":"https://static.kasatria.com/pivot-img/photo/mus_114.jpg","a":20,"c":"MY","i":"Traveling","w":200347.2},{"n":"Shahir Sukri","p":"https://static.kasatria.com/pivot-img/photo/p_028.jpg","a":34,"c":"MY","i":"Painting","w":282700.8},{"n":"Amierul Miyul","p":"https://static.kasatria.com/pivot-img/photo/p_030.jpg","a":48,"c":"MY","i":"Gardening","w":321004.8},{"n":"Nara Sharkirra","p":"https://static.kasatria.com/pivot-img/photo/mus_090.jpg","a":23,"c":"MY","i":"Writing","w":338539.2},{"n":"Muhamad Hafiz Bob","p":"https://static.kasatria.com/pivot-img/photo/p_022.jpg","a":59,"c":"MY","i":"Gardening","w":240312.0},{"n":"Mohd Shahril","p":"https://static.kasatria.com/pivot-img/photo/p_023.jpg","a":48,"c":"MY","i":"Gardening","w":252984.0},{"n":"Eyka Abdul Ghani","p":"https://static.kasatria.com/pivot-img/photo/mus_091.jpg","a":23,"c":"MY","i":"Traveling","w":233726.4},{"n":"Mohamad Khuzairy","p":"https://static.kasatria.com/pivot-img/photo/m_167.jpg","a":33,"c":"MY","i":"Cooking","w":118766.4},{"n":"Nana Hanna","p":"https://static.kasatria.com/pivot-img/photo/m_179.jpg","a":20,"c":"MY","i":"Traveling","w":226276.8},{"n":"Mohd Hanafi Azhar\u00a0","p":"https://static.kasatria.com/pivot-img/photo/p_034.jpg","a":62,"c":"MY","i":"Gardening","w":332568.0},{"n":"Zenki Afra","p":"https://static.kasatria.com/pivot-img/photo/p_045.jpg","a":60,"c":"MY","i":"Gardening","w":168600.0},{"n":"Mohamad Hairie","p":"https://static.kasatria.com/pivot-img/photo/p_050.jpg","a":48,"c":"MY","i":"Gardening","w":300566.4},{"n":"Mohd Syafiq","p":"https://static.kasatria.com/pivot-img/photo/m_168.jpg","a":57,"c":"MY","i":"Gardening","w":215164.8},{"n":"Muhammad Ashri","p":"https://static.kasatria.com/pivot-img/photo/m_165.jpg","a":27,"c":"MY","i":"Traveling","w":206568.0},{"n":"Yusni Asnida","p":"https://static.kasatria.com/pivot-img/photo/mus_024.jpg","a":20,"c":"MY","i":"Traveling","w":167016.0},{"n":"Shaheera Mohd Aniq","p":"https://static.kasatria.com/pivot-img/photo/m_049.jpg","a":19,"c":"MY","i":"Traveling","w":248865.6},{"n":"Nursyamimi Atiqah\u00a0","p":"https://static.kasatria.com/pivot-img/photo/m_103.jpg","a":27,"c":"MY","i":"Cooking","w":288734.4},{"n":"Catherine Wheeler","p":"https://static.kasatria.com/pivot-img/photo/G_038.jpg","a":23,"c":"US","i":"Hiking","w":53697.6},{"n":"Azizah Mahzan","p":"https://static.kasatria.com/pivot-img/photo/m_110.jpg","a":28,"c":"MY","i":"Hiking","w":210508.8},{"n":"Mohd Azmi","p":"https://static.kasatria.com/pivot-img/photo/m_149.jpg","a":30,"c":"MY","i":"Traveling","w":212006.4},{"n":"Anastasia Morrison","p":"https://static.kasatria.com/pivot-img/photo/G_035.jpg","a":33,"c":"US","i":"Hiking","w":71625.6},{"n":"Razak Muhaidin","p":"https://static.kasatria.com/pivot-img/photo/ph_151.jpg","a":40,"c":"MY","i":"Gardening","w":259934.4},{"n":"Helena Tillsley","p":"https://static.kasatria.com/pivot-img/photo/o_014.jpg","a":45,"c":"US","i":"Gardening","w":192369.6},{"n":"Ryder Fletcher","p":"https://static.kasatria.com/pivot-img/photo/G_057.jpg","a":50,"c":"US","i":"Gardening","w":257323.2},{"n":"Sara Fessenden","p":"https://static.kasatria.com/pivot-img/photo/G_058.jpg","a":38,"c":"US","i":"Writing","w":145972.8},{"n":"Jeffrey Ewing","p":"https://static.kasatria.com/pivot-img/photo/J_011.jpg","a":49,"c":"CN","i":"Gardening","w":254068.8},{"n":"Dawson Hoffman","p":"https://static.kasatria.com/pivot-img/photo/CA0162.jpg","a":38,"c":"US","i":"Cooking","w":181804.8},{"n":"Jonne Macdonald","p":"https://static.kasatria.com/pivot-img/photo/G_052.jpg","a":36,"c":"US","i":"Hiking","w":212760.0},{"n":"Pierre Henry","p":"https://static.kasatria.com/pivot-img/photo/CA0267.jpg","a":52,"c":"US","i":"Gardening","w":127704.0},{"n":"Collen McClintock","p":"https://static.kasatria.com/pivot-img/photo/G_039.jpg","a":51,"c":"US","i":"Gardening","w":261883.2}];
+
+let ACTIVE_CANDIDATES = EMBEDDED_CANDIDATES;
+
+function setDataSourceLabel(text) {
+  const el = document.getElementById('dataSource');
+  if (el) el.textContent = ACTIVE_CANDIDATES.length + ' candidates \u00b7 ' + text;
+}
+
+// Pulls live rows from a published/shared Google Sheet via the gviz
+// endpoint (no API key needed for a sheet shared as "Anyone with the
+// link can view"). Falls back to the embedded dataset on any error —
+// missing config, network/CORS issues, or an empty sheet.
+async function loadCandidateData() {
+  if (!isSheetConfigured()) {
+    setDataSourceLabel('embedded sample data (no Sheet ID set)');
+    return EMBEDDED_CANDIDATES;
+  }
+  try {
+    const url = 'https://docs.google.com/spreadsheets/d/' + CONFIG.GOOGLE_SHEET_ID +
+      '/gviz/tq?tqx=out:json&sheet=' + encodeURIComponent(CONFIG.GOOGLE_SHEET_NAME);
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    const jsonText = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
+    const parsed = JSON.parse(jsonText);
+    const cols = parsed.table.cols.map(c => (c.label || '').toString().trim().toLowerCase());
+    const idx = {
+      name: cols.indexOf('name'),
+      photo: cols.indexOf('photo'),
+      age: cols.indexOf('age'),
+      country: cols.indexOf('country'),
+      interest: cols.indexOf('interest'),
+      worth: cols.findIndex(c => c.indexOf('net worth') !== -1)
+    };
+    const rows = parsed.table.rows.map(r => {
+      const cell = i => (i >= 0 && r.c[i]) ? r.c[i] : null;
+      const worthCell = cell(idx.worth);
+      let worthNum = 0;
+      if (worthCell) {
+        worthNum = typeof worthCell.v === 'number'
+          ? worthCell.v
+          : parseFloat(String(worthCell.v ?? worthCell.f ?? '0').replace(/[^0-9.\-]/g, '')) || 0;
+      }
+      return {
+        n: cell(idx.name) ? String(cell(idx.name).v) : '',
+        p: cell(idx.photo) ? String(cell(idx.photo).v) : '',
+        a: cell(idx.age) ? Number(cell(idx.age).v) : 0,
+        c: cell(idx.country) ? String(cell(idx.country).v) : '',
+        i: cell(idx.interest) ? String(cell(idx.interest).v) : '',
+        w: worthNum
+      };
+    }).filter(r => r.n);
+
+    if (!rows.length) throw new Error('Sheet returned 0 usable rows');
+    setDataSourceLabel('live \u00b7 Google Sheet');
+    return rows;
+  } catch (err) {
+    console.warn('[candidate-table] Sheet fetch failed, using embedded data:', err.message);
+    setDataSourceLabel('embedded sample data (Sheet fetch unavailable)');
+    return EMBEDDED_CANDIDATES;
+  }
+}
+
+// ---------------------------------------------------------------------
+// 3. Net worth colour bands — thresholds per the assignment, hex values
+//    taken directly from the reference "Data Structure" slide (Image B).
+// ---------------------------------------------------------------------
+function bandFor(worth) {
+  if (worth < 100000) return { color: '#EF3022', label: 'Under $100K' };
+  if (worth < 200000) return { color: '#FDDA35', label: '$100K\u2013$200K' };
+  return { color: '#3A9F48', label: 'Over $200K' };
+}
+function formatMoney(w) {
+  return '$' + Number(w).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function createCandidateElement(c, index) {
+  const band = bandFor(c.w);
+
+  const el = document.createElement('div');
+  el.className = 'element';
+  el.style.background = band.color;
+
+  const rank = document.createElement('div');
+  rank.className = 'rank';
+  rank.textContent = '#' + (index + 1);
+  el.appendChild(rank);
+
+  const photoWrap = document.createElement('div');
+  photoWrap.className = 'photo-wrap';
+  const img = document.createElement('img');
+  img.src = c.p;
+  img.alt = c.n;
+  img.loading = 'lazy';
+  img.referrerPolicy = 'no-referrer';
+  img.onerror = function () {
+    photoWrap.innerHTML = '';
+    const initials = document.createElement('div');
+    initials.className = 'initials';
+    initials.textContent = (c.n || '?').split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+    photoWrap.appendChild(initials);
+  };
+  photoWrap.appendChild(img);
+  el.appendChild(photoWrap);
+
+  const info = document.createElement('div');
+  info.className = 'info';
+
+  const name = document.createElement('div');
+  name.className = 'name';
+  name.textContent = c.n;
+  info.appendChild(name);
+
+  const meta = document.createElement('div');
+  meta.className = 'meta';
+  meta.textContent = c.a + 'y \u00b7 ' + c.c;
+  info.appendChild(meta);
+
+  const interest = document.createElement('div');
+  interest.className = 'interest';
+  interest.textContent = c.i;
+  info.appendChild(interest);
+
+  const worth = document.createElement('div');
+  worth.className = 'worth';
+  worth.textContent = formatMoney(c.w);
+  worth.style.color = band.color;
+  info.appendChild(worth);
+
+  el.appendChild(info);
+  el.title = c.n + ' \u2014 ' + band.label;
+
+  return el;
+}
+
+// ---------------------------------------------------------------------
+// 4. Minimal tween engine (no external animation library — avoids a
+//    version-compatibility dependency for a ~15-line job). Same
+//    exponential in/out easing as the reference demo.
+// ---------------------------------------------------------------------
+const activeTweens = [];
+function easeExponentialInOut(t) {
+  if (t === 0) return 0;
+  if (t === 1) return 1;
+  if ((t *= 2) < 1) return 0.5 * Math.pow(2, 10 * (t - 1));
+  return 0.5 * (-Math.pow(2, -10 * (t - 1)) + 2);
+}
+function tweenTo(target, toValues, duration) {
+  const from = {};
+  for (const k in toValues) from[k] = target[k];
+  activeTweens.push({ target, from, to: toValues, duration, startTime: null });
+}
+function updateTweens(now) {
+  for (let i = activeTweens.length - 1; i >= 0; i--) {
+    const tw = activeTweens[i];
+    if (tw.startTime === null) tw.startTime = now;
+    const t = Math.min(1, (now - tw.startTime) / tw.duration);
+    const e = easeExponentialInOut(t);
+    for (const k in tw.to) {
+      tw.target[k] = tw.from[k] + (tw.to[k] - tw.from[k]) * e;
+    }
+    if (t >= 1) activeTweens.splice(i, 1);
+  }
+}
+
+const REDUCE_MOTION = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// ---------------------------------------------------------------------
+// 5. Layout targets — table (20x10), sphere, double helix, grid (10x4x5)
+// ---------------------------------------------------------------------
+function buildTargets(candidates) {
+  const n = candidates.length;
+  const targets = { table: [], sphere: [], helix: [], grid: [] };
+  const vector = new THREE.Vector3();
+
+  // TABLE — 20 columns × 10 rows
+  const TCOLS = 20, TROWS = 10;
+  const tSpX = 170, tSpY = 230;
+  const tOffX = (TCOLS - 1) * tSpX / 2;
+  const tOffY = (TROWS - 1) * tSpY / 2;
+  for (let i = 0; i < n; i++) {
+    const col = i % TCOLS, row = Math.floor(i / TCOLS);
+    const obj = new THREE.Object3D();
+    obj.position.set(col * tSpX - tOffX, -(row * tSpY) + tOffY, 0);
+    targets.table.push(obj);
+  }
+
+  // SPHERE
+  const sphereRadius = 1100;
+  for (let i = 0; i < n; i++) {
+    const phi = Math.acos(-1 + (2 * i) / n);
+    const theta = Math.sqrt(n * Math.PI) * phi;
+    const obj = new THREE.Object3D();
+    obj.position.setFromSphericalCoords(sphereRadius, phi, theta);
+    vector.copy(obj.position).multiplyScalar(2);
+    obj.lookAt(vector);
+    targets.sphere.push(obj);
+  }
+
+  // ========== ADVANCED DOUBLE HELIX ==========
+  // Two strands with larger separation for better visibility
+// ========== ADVANCED DOUBLE HELIX ==========
+const HELIX_RADIUS = 650;
+const HELIX_HEIGHT_STEP = 50;
+const HELIX_ANGLE_STEP = 0.35;
+
+for (let i = 0; i < n; i++) {
+  const item = new THREE.Object3D();
+
+  const strand = i % 2;
+  const indexOnStrand = Math.floor(i / 2);
+
+  const angle = indexOnStrand * HELIX_ANGLE_STEP + (strand * Math.PI);
+  const y = (indexOnStrand - n / 4) * HELIX_HEIGHT_STEP;
+
+  item.position.x = HELIX_RADIUS * Math.cos(angle);
+  item.position.y = y;
+  item.position.z = HELIX_RADIUS * Math.sin(angle);
+
+  const lookTarget = new THREE.Vector3(
+    HELIX_RADIUS * Math.cos(angle + 0.1),
+    y,
+    HELIX_RADIUS * Math.sin(angle + 0.1)
+  );
+  item.lookAt(lookTarget);
+  targets.helix.push(item);
+}
+
+  // ========== GRID 5 × 4 × 10 ==========
+  // Matches company Image C: 5 (width) × 4 (height) × 10 (depth)
+  const GX = 5;   // width
+  const GY = 4;   // height
+  const GZ = 10;  // depth
+
+  const gSpX = 200;
+  const gSpY = 240;
+  const gSpZ = 320;
+
+  const gOffX = (GX - 1) * gSpX / 2;
+  const gOffY = (GY - 1) * gSpY / 2;
+  const gOffZ = (GZ - 1) * gSpZ / 2;
+
+  for (let i = 0; i < n; i++) {
+    const col   = i % GX;
+    const row   = Math.floor(i / GX) % GY;
+    const layer = Math.floor(i / (GX * GY));
+
+    const obj = new THREE.Object3D();
+    obj.position.set(
+      col * gSpX - gOffX,
+      -(row * gSpY) + gOffY,
+      layer * gSpZ - gOffZ
+    );
+    targets.grid.push(obj);
+  }
+
+  return targets;
+}
+
+// ---------------------------------------------------------------------
+// 6. Scene / render loop / simple orbit controls
+// ---------------------------------------------------------------------
+let camera, scene, renderer;
+const objects = [];
+let targets = null;
+
+let azimuth = 0, polar = Math.PI / 2, camDistance = 3400;
+const MIN_DIST = 900, MAX_DIST = 9000;
+let dragging = false, lastX = 0, lastY = 0;
+
+function computeFitDistance(halfWidth, halfHeight) {
+  const aspect = window.innerWidth / window.innerHeight;
+  const vFOV = camera.fov * Math.PI / 180;
+  const distForHeight = halfHeight / Math.tan(vFOV / 2);
+  const distForWidth = halfWidth / (Math.tan(vFOV / 2) * aspect);
+  return Math.max(distForHeight, distForWidth, 1200) * 1.15;
+}
+
+function initControls() {
+  const dom = renderer.domElement;
+  dom.style.touchAction = 'none';
+  dom.addEventListener('pointerdown', e => {
+    dragging = true;
+    lastX = e.clientX;
+    lastY = e.clientY;
+    try { dom.setPointerCapture(e.pointerId); } catch (err) {}
+  });
+  dom.addEventListener('pointerup', () => { dragging = false; });
+  dom.addEventListener('pointercancel', () => { dragging = false; });
+  dom.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    const dx = e.clientX - lastX, dy = e.clientY - lastY;
+    lastX = e.clientX; lastY = e.clientY;
+    azimuth -= dx * 0.005;
+    polar -= dy * 0.005;
+    polar = Math.max(0.12, Math.min(Math.PI - 0.12, polar));
+  });
+  dom.addEventListener('wheel', e => {
+    e.preventDefault();
+    camDistance += e.deltaY * 0.85;
+    camDistance = Math.max(MIN_DIST, Math.min(MAX_DIST, camDistance));
+  }, { passive: false });
+}
+
+function updateCameraFromControls() {
+  camera.position.x = camDistance * Math.sin(polar) * Math.sin(azimuth);
+  camera.position.z = camDistance * Math.sin(polar) * Math.cos(azimuth);
+  camera.position.y = camDistance * Math.cos(polar);
+  camera.lookAt(0, 0, 0);
+}
+
+function transform(newTargets, duration) {
+  activeTweens.length = 0;
+  const d = REDUCE_MOTION ? Math.min(duration, 600) : duration;
+  for (let i = 0; i < objects.length; i++) {
+    const object = objects[i];
+    const target = newTargets[i];
+    const jitter = REDUCE_MOTION ? 0 : Math.random() * d;
+    tweenTo(object.position, { x: target.position.x, y: target.position.y, z: target.position.z }, jitter + d);
+    tweenTo(object.rotation, { x: target.rotation.x, y: target.rotation.y, z: target.rotation.z }, jitter + d);
+  }
+}
+
+function setActiveButton(key) {
+  ['table', 'sphere', 'helix', 'grid'].forEach(k => {
+    document.getElementById(k).classList.toggle('active', k === key);
+  });
+}
+
+function initMenu() {
+  document.getElementById('table').addEventListener('click', () => { setActiveButton('table'); transform(targets.table, 2000); });
+  document.getElementById('sphere').addEventListener('click', () => { setActiveButton('sphere'); transform(targets.sphere, 2000); });
+  document.getElementById('helix').addEventListener('click', () => { setActiveButton('helix'); transform(targets.helix, 2000); });
+  document.getElementById('grid').addEventListener('click', () => { setActiveButton('grid'); transform(targets.grid, 2000); });
+  setActiveButton('table');
+}
+
+function onWindowResize() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function animate(now) {
+  requestAnimationFrame(animate);
+  updateTweens(now || performance.now());
+  updateCameraFromControls();
+  renderer.render(scene, camera);
+}
+
+function initScene() {
+  camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 20000);
+  scene = new THREE.Scene();
+
+  ACTIVE_CANDIDATES.forEach((c, i) => {
+    const el = createCandidateElement(c, i);
+    const objectCSS = new THREE.CSS3DObject(el);
+    objectCSS.position.x = Math.random() * 4000 - 2000;
+    objectCSS.position.y = Math.random() * 4000 - 2000;
+    objectCSS.position.z = Math.random() * 4000 - 2000;
+    scene.add(objectCSS);
+    objects.push(objectCSS);
+  });
+
+  targets = buildTargets(ACTIVE_CANDIDATES);
+
+  renderer = new THREE.CSS3DRenderer();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  document.getElementById('container').appendChild(renderer.domElement);
+
+  camDistance = computeFitDistance(1615 + 75, 1035 + 105); // table half-extent + tile half-size
+
+  initControls();
+  initMenu();
+  transform(targets.table, 2000);
+
+  window.addEventListener('resize', onWindowResize);
+
+  animate();
+}
+
+// ---------------------------------------------------------------------
+// 7. Google Sign-In gate, with a graceful fallback. The Google Identity
+//    Services script is loaded from accounts.google.com (not cdnjs), so
+//    it will not load inside this chat's sandboxed preview — that's
+//    expected here and is why the "Continue to preview" fallback exists.
+//    Once this file is deployed to a real domain with CONFIG.GOOGLE_CLIENT_ID
+//    set, the real Google login will render and gate access for real.
+// ---------------------------------------------------------------------
+function boot() {
+  const continueBtn = document.getElementById('continueBtn');
+  const gateNote = document.getElementById('gateNote');
+  let settled = false;
+
+  function proceed(user = null) {
+  if (settled) return;
+  settled = true;
+
+  // Show user profile if available
+  if (user) {
+    const profile = document.getElementById('userProfile');
+    const photo = document.getElementById('userPhoto');
+    const name = document.getElementById('userName');
+
+    if (user.picture) photo.src = user.picture;
+    name.textContent = user.name || user.email || 'User';
+    profile.style.display = 'flex';
+
+    // Logout button
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+      logoutBtn.onclick = function () {
+        if (window.google && google.accounts && google.accounts.id) {
+          google.accounts.id.disableAutoSelect();
+        }
+        location.reload();
+      };
+    }
+  }
+
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  startApp();
+}
+
+  function showFallback(message) {
+    gateNote.textContent = message;
+    //continueBtn.style.display = 'inline-block';
+  }
+
+  if (!isClientIdConfigured()) {
+    showFallback('Google Sign-In isn’t configured yet.');
+    continueBtn.addEventListener('click', () => proceed());
+    return;
+  }
+
+  const script = document.createElement('script');
+  script.src = 'https://accounts.google.com/gsi/client';
+  script.async = true;
+  script.onload = () => {
+    try {
+      google.accounts.id.initialize({
+        client_id: CONFIG.GOOGLE_CLIENT_ID,
+        callback: (response) => {
+          // Decode the credential to get user info
+          const base64Url = response.credential.split('.')[1];
+          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+          const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+          }).join(''));
+          const user = JSON.parse(jsonPayload);
+          proceed(user);
+        }
+      });
+
+      google.accounts.id.renderButton(document.getElementById('googleBtn'), {
+        theme: 'filled_black',
+        size: 'large',
+        shape: 'pill'
+      });
+
+      gateNote.textContent = 'Sign in with Google to continue.';
+    } catch (e) {
+      showFallback('Google Sign-In failed to initialize.');
+      continueBtn.addEventListener('click', () => proceed());
+    }
+  };
+  script.onerror = () => {
+    showFallback('Unable to reach Google. Please check your connection and refresh.');
+    continueBtn.addEventListener('click', () => proceed());
+  };
+  document.head.appendChild(script);
+  
+}
+
+async function startApp() {
+  ACTIVE_CANDIDATES = await loadCandidateData();
+  initScene();
+}
+
+boot();
+</script>
+</body>
+</html> 
