@@ -27,7 +27,7 @@ A single-page application that visualizes candidate data in four different 3D la
 
 ## Live Demo
 
-[[https://your-vercel-url.vercel.app](https://your-vercel-url.vercel.app)](https://kasatria-candidate-periodic-table.vercel.app/)
+(https://kasatria-candidate-periodic-table.vercel.app/)
 
 ## Setup
 
