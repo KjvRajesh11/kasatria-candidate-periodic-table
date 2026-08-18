@@ -927,47 +927,82 @@ for (let i = 0; i < n; i++) {
   }
 
 // ========== TETRAHEDRON (4-FACE PYRAMID) ==========
-const r = 1200;
-  const v0 = new THREE.Vector3(0, r, 0);
-  const v1 = new THREE.Vector3(r * Math.sqrt(8/9), -r/3, 0);
-  const v2 = new THREE.Vector3(-r * Math.sqrt(2/9), -r/3, r * Math.sqrt(2/3));
-  const v3 = new THREE.Vector3(-r * Math.sqrt(2/9), -r/3, -r * Math.sqrt(2/3));
+const r = 1400; // size of the tetrahedron
 
-  const faces = [
-    [v0, v1, v2],
-    [v0, v2, v3],
-    [v0, v3, v1],
-    [v1, v3, v2]
-  ];
+// Regular tetrahedron vertices
+const v0 = new THREE.Vector3(1, 1, 1);
+const v1 = new THREE.Vector3(1, -1, -1);
+const v2 = new THREE.Vector3(-1, 1, -1);
+const v3 = new THREE.Vector3(-1, -1, 1);
 
-  for (let i = 0; i < n; i++) {
-    const faceIdx = i % 4;
-    const itemInFace = Math.floor(i / 4);
-    const face = faces[faceIdx];
+// Normalize and scale
+[v0, v1, v2, v3].forEach(v => v.normalize().multiplyScalar(r));
 
-    const u = ((itemInFace % 5) + 1) / 6;
-    const v = (Math.floor(itemInFace / 5) + 1) / 6;
-    const w = 1 - u - v;
+const faces = [
+  [v0, v1, v2],
+  [v0, v2, v3],
+  [v0, v3, v1],
+  [v1, v3, v2]
+];
 
-    const pos = new THREE.Vector3()
-      .addScaledVector(face[0], Math.abs(u))
-      .addScaledVector(face[1], Math.abs(v))
-      .addScaledVector(face[2], Math.abs(w));
+const tilesPerFace = Math.ceil(n / 4); // distribute 200 tiles across 4 faces
 
-    const obj = new THREE.Object3D();
-    obj.position.copy(pos);
+for (let i = 0; i < n; i++) {
+  const faceIndex = i % 4;
+  const indexInFace = Math.floor(i / 4);
 
-    const cb = new THREE.Vector3().subVectors(face[2], face[1]);
-    const ab = new THREE.Vector3().subVectors(face[0], face[1]);
-    cb.cross(ab).normalize();
+  const face = faces[faceIndex];
 
-    const targetPos = new THREE.Vector3().addVectors(pos, cb);
-    obj.lookAt(targetPos);
+  // Create a better grid-like distribution on the triangular face
+  const rows = Math.ceil(Math.sqrt(tilesPerFace * 2));
+  let row = 0;
+  let col = 0;
+  let count = 0;
 
-    targets.pyramid.push(obj);
+  // Find row and column for this tile
+  for (let r = 0; r < rows; r++) {
+    const colsInRow = r + 1;
+    if (count + colsInRow > indexInFace) {
+      row = r;
+      col = indexInFace - count;
+      break;
+    }
+    count += colsInRow;
   }
 
-  return targets;
+  // Convert row/col to barycentric coordinates (u, v, w)
+  const u = (col + 0.5) / (row + 1);
+  const v = (row + 0.5) / rows;
+  const w = 1 - u - v;
+
+  // Avoid points outside the triangle
+  const safeU = Math.max(0.05, Math.min(0.9, u));
+  const safeV = Math.max(0.05, Math.min(0.9, v));
+  const safeW = Math.max(0.05, 1 - safeU - safeV);
+
+  const pos = new THREE.Vector3()
+    .addScaledVector(face[0], safeU)
+    .addScaledVector(face[1], safeV)
+    .addScaledVector(face[2], safeW);
+
+  const obj = new THREE.Object3D();
+  obj.position.copy(pos);
+
+  // Make the tile face outward
+  const normal = new THREE.Vector3()
+    .crossVectors(
+      new THREE.Vector3().subVectors(face[1], face[0]),
+      new THREE.Vector3().subVectors(face[2], face[0])
+    )
+    .normalize();
+
+  const targetPos = new THREE.Vector3().addVectors(pos, normal);
+  obj.lookAt(targetPos);
+
+  targets.pyramid.push(obj);
+}
+
+return targets;
 }
 
 // ---------------------------------------------------------------------
