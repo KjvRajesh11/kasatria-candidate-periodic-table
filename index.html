@@ -842,7 +842,7 @@ const REDUCE_MOTION = window.matchMedia && window.matchMedia('(prefers-reduced-m
 // ---------------------------------------------------------------------
 function buildTargets(candidates) {
   const n = candidates.length;
-  const targets = { table: [], sphere: [], helix: [], grid: [] };
+  const targets = { table: [], sphere: [], helix: [], grid: [], Tetrahedron: [] };
   const vector = new THREE.Vector3();
 
   // TABLE — 20 columns × 10 rows
@@ -926,9 +926,6 @@ for (let i = 0; i < n; i++) {
     targets.grid.push(obj);
   }
 
-  return targets;
-}
-
 // ========== TETRAHEDRON (4-FACE PYRAMID) ==========
 const r = 1200;
   const v0 = new THREE.Vector3(0, r, 0);
@@ -971,7 +968,7 @@ const r = 1200;
   }
 
   return targets;
-
+}
 
 // ---------------------------------------------------------------------
 // 6. Scene / render loop / simple orbit controls
