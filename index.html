@@ -1041,10 +1041,31 @@ function setActiveButton(key) {
 }
 
 function initMenu() {
-  document.getElementById('table').addEventListener('click', () => { setActiveButton('table'); transform(targets.table, 2000); });
-  document.getElementById('sphere').addEventListener('click', () => { setActiveButton('sphere'); transform(targets.sphere, 2000); });
-  document.getElementById('helix').addEventListener('click', () => { setActiveButton('helix'); transform(targets.helix, 2000); });
-  document.getElementById('grid').addEventListener('click', () => { setActiveButton('grid'); transform(targets.grid, 2000); });
+  document.getElementById('table').addEventListener('click', () => {
+    setActiveButton('table');
+    transform(targets.table, 2000);
+  });
+
+  document.getElementById('sphere').addEventListener('click', () => {
+    setActiveButton('sphere');
+    transform(targets.sphere, 2000);
+  });
+
+  document.getElementById('helix').addEventListener('click', () => {
+    setActiveButton('helix');
+    transform(targets.helix, 2000);
+  });
+
+  document.getElementById('grid').addEventListener('click', () => {
+    setActiveButton('grid');
+    transform(targets.grid, 2000);
+  });
+
+  document.getElementById('pyramid').addEventListener('click', () => {
+    setActiveButton('pyramid');
+    transform(targets.pyramid, 2000);
+  });
+
   setActiveButton('table');
 }
 
